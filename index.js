@@ -425,8 +425,10 @@ async function filterVacancies(vacancies, state) {
 function getSkillMatchScore(candidateSkills, vacancySkills) {
   const splitSkills = function(value) {
     return value
-      .split(',')
-      .map(function(skill) { return skill.trim().toLowerCase(); })
+      .split(/[,;\n|]+/)
+      .map(function(skill) {
+        return skill.trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+      })
       .filter(Boolean);
   };
   const candidate = splitSkills(candidateSkills);
@@ -907,29 +909,29 @@ app.post('/api/matches', async function(req, res) {
       });
     }
 
-    const matches = vacancies
-      .map(function(vacancy) {
-        return {
-          id: vacancy.id,
-          title: vacancy.title,
-          company: vacancy.company,
-          skills: vacancy.skills,
-          city: vacancy.city,
-          district: vacancy.district,
-          type: vacancy.type,
-          experience: vacancy.experience,
-          salary: vacancy.salary,
-          phone: vacancy.phone,
-          requirements: vacancy.requirements,
-          matchScore: getSkillMatchScore(skills.trim(), vacancy.skills || ''),
-        };
-      })
-      .filter(function(vacancy) { return vacancy.matchScore > 0; })
-      .sort(function(a, b) {
+    const rankedVacancies = vacancies.map(function(vacancy) {
+      return {
+        id: vacancy.id,
+        title: vacancy.title,
+        company: vacancy.company,
+        skills: vacancy.skills,
+        city: vacancy.city,
+        district: vacancy.district,
+        type: vacancy.type,
+        experience: vacancy.experience,
+        salary: vacancy.salary,
+        phone: vacancy.phone,
+        requirements: vacancy.requirements,
+        matchScore: getSkillMatchScore(skills.trim(), vacancy.skills || ''),
+      };
+    }).sort(function(a, b) {
       return b.matchScore - a.matchScore || b.id - a.id;
-      })
-      .slice(0, 10);
-    return res.json({ matches });
+    });
+    const skillMatches = rankedVacancies.filter(function(vacancy) {
+      return vacancy.matchScore > 0;
+    });
+    const matches = (skillMatches.length ? skillMatches : rankedVacancies).slice(0, 10);
+    return res.json({ matches, hasSkillMatch: skillMatches.length > 0 });
   } catch (error) {
     console.error('vacancy matching error:', error);
     return res.status(500).json({ error: 'Could not find matching vacancies.' });

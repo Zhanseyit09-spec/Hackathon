@@ -353,9 +353,11 @@
           body: JSON.stringify({ skills: form.elements.skills.value, city: form.elements.city.value }),
         });
         if (!data.matches.length) {
-          showStatus(status, 'Сәйкес вакансия табылмады. Жұмыс берушілер жариялаған вакансиялар төменде көрсетіледі.', false);
+          showStatus(status, 'Әзірге жарияланған вакансия жоқ. Кейінірек қайталап көріңіз.', false);
+        } else if (!data.hasSkillMatch) {
+          showStatus(status, 'Дағды бойынша дәл сәйкестік табылмады. Таңдалған қаладағы соңғы вакансиялар көрсетілді.', false);
         } else {
-          showStatus(status, 'Табылған вакансиялар: ' + data.matches.length, false);
+          showStatus(status, 'Дағды бойынша сәйкес вакансиялар: ' + data.matches.length, false);
         }
         renderVacancies(document.querySelector('#matches'), data.matches, true);
       } catch (error) {
