@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="kk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7fb">
+  <title>Жұмыс платформасы — Mangistau Job Platform</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #f6f7fb;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    main { width: min(820px, calc(100% - 32px)); margin: 48px auto; }
+    .intro { margin-bottom: 28px; }
+    .eyebrow { color: #5368d5; font-size: .82rem; font-weight: 700; }
+    h1 { margin: 8px 0; font-size: clamp(2rem, 7vw, 3rem); }
+    h2 { margin: 0 0 18px; }
+    .section { margin-top: 32px; }
+    .intro p, .hint { color: #596276; line-height: 1.6; }
+    form, .job, .vacancy-list, .panel {
+      padding: 24px;
+      border: 1px solid #e4e7ef;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 8px 28px #1720330a;
+    }
+    label { display: block; margin: 0 0 8px; font-weight: 650; }
+    input, textarea {
+      width: 100%;
+      margin-bottom: 18px;
+      padding: 13px 14px;
+      border: 1px solid #ccd2e0;
+      border-radius: 9px;
+      font: inherit;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    input:focus, textarea:focus { outline: 3px solid #5368d533; border-color: #5368d5; }
+    button {
+      padding: 13px 18px;
+      border: 0;
+      border-radius: 9px;
+      background: #465bd0;
+      color: #fff;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .65; cursor: wait; }
+    button.secondary { margin-left: 8px; background: #e9ecf9; color: #273a9b; }
+    .status { min-height: 24px; margin: 14px 0; color: #596276; }
+    .error { color: #a32727; }
+    .results { display: grid; gap: 14px; }
+    .vacancy-list { margin-top: 18px; }
+    .job h2 { margin: 0 0 6px; font-size: 1.2rem; }
+    .job p { margin: 8px 0; line-height: 1.5; }
+    .job .meta { color: #596276; }
+    .score { color: #354ab8; font-weight: 700; }
+    .hint { font-size: .92rem; }
+    .role-choices { display: flex; flex-wrap: wrap; gap: 12px; }
+    .role-choices button { margin: 0; }
+    @media (max-width: 520px) {
+      main { margin: 32px auto; }
+      form, .job, .vacancy-list, .panel { padding: 18px; }
+      .role-choices { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="intro">
+      <span class="eyebrow">MANGISTAU JOB PLATFORM</span>
+      <h1>Жұмыс платформасы</h1>
+      <p>Тіркеліңіз, рөліңізді таңдаңыз да, жұмыс немесе қызметкер іздеңіз.</p>
+    </header>
+
+    <section id="auth-view" class="panel" aria-labelledby="auth-heading">
+      <h2 id="auth-heading">Тіркелу</h2>
+      <form id="auth-form">
+        <label for="username">Логин</label>
+        <input id="username" name="username" required minlength="3" maxlength="64"
+          autocomplete="username">
+        <label for="password">Құпиясөз</label>
+        <input id="password" name="password" type="password" required minlength="8" maxlength="128"
+          autocomplete="new-password">
+        <button id="auth-submit" type="submit">Тіркелу</button>
+        <button id="auth-switch" class="secondary" type="button">Тіркелгім бар — кіру</button>
+      </form>
+      <p class="hint">Логинде әріп, сан және . _ @ + - таңбаларын қолдануға болады. Жеке сәйкестендіру нөмірі немесе куәлік қажет емес.</p>
+      <p id="auth-status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="role-view" class="panel" hidden aria-labelledby="role-heading">
+      <h2 id="role-heading">Сіз кімсіз?</h2>
+      <p>Рөліңізді таңдаңыз. Бұл таңдау тіркелгіңізге сақталады.</p>
+      <div class="role-choices">
+        <button type="button" data-role="employer">Жұмыс берушімін</button>
+        <button type="button" data-role="seeker">Жұмыс іздеушімін</button>
+      </div>
+      <p id="role-status" class="status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section id="app-view" hidden>
+      <div class="panel">
+        <span id="account-label"></span>
+        <button id="logout" class="secondary" type="button">Шығу</button>
+      </div>
+
+      <section id="seeker-view" class="section" hidden>
+        <form id="match-form">
+          <h2>Жұмыс іздеу</h2>
+          <label for="skills">Дағдыларыңыз</label>
+          <input id="skills" name="skills" required minlength="2" maxlength="500"
+            placeholder="Мысалы: Python, Excel, сату">
+          <label for="city">Қала (міндетті емес)</label>
+          <input id="city" name="city" maxlength="80" placeholder="Мысалы: Ақтау">
+          <button id="match-submit" type="submit">Сәйкес вакансияларды іздеу</button>
+        </form>
+        <p id="match-status" class="status" role="status" aria-live="polite"></p>
+        <section id="matches" class="results" aria-label="Сәйкес вакансиялар"></section>
+        <section class="section">
+          <h2>Жарияланған вакансиялар</h2>
+          <div id="vacancies" class="results vacancy-list" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="employer-view" class="section" hidden>
+        <form id="vacancy-form">
+          <h2>Вакансия жариялау</h2>
+          <label for="title">Қызмет атауы</label>
+          <input id="title" name="title" required maxlength="120" placeholder="Мысалы: Сатушы-кеңесші">
+          <label for="company">Компания атауы</label>
+          <input id="company" name="company" required maxlength="120" placeholder="Компания">
+          <label for="vacancy-skills">Қажетті дағдылар (үтірмен бөліңіз)</label>
+          <input id="vacancy-skills" name="skills" required maxlength="500" placeholder="Сату, Excel, қазақ тілі">
+          <label for="vacancy-city">Қала</label>
+          <input id="vacancy-city" name="city" required maxlength="80" placeholder="Ақтау">
+          <label for="district">Аудан (міндетті емес)</label>
+          <input id="district" name="district" maxlength="80" placeholder="17-шағын аудан">
+          <label for="type">Жұмыс кестесі</label>
+          <input id="type" name="type" maxlength="80" placeholder="Толық күн">
+          <label for="experience">Тәжірибе талабы</label>
+          <input id="experience" name="experience" maxlength="40" placeholder="Тәжірибесіз / 1 жылдан бастап">
+          <label for="salary">Жалақы</label>
+          <input id="salary" name="salary" maxlength="80" placeholder="250 000 ₸">
+          <label for="phone">Байланыс телефоны</label>
+          <input id="phone" name="phone" type="tel" required maxlength="30" placeholder="+77001234567">
+          <label for="requirements">Қосымша талаптар (міндетті емес)</label>
+          <textarea id="requirements" name="requirements" maxlength="1000"
+            placeholder="Жұмыс туралы қосымша ақпарат"></textarea>
+          <p class="hint">Байланыс телефоны тіркелген жұмыс іздеушілерге көрсетіледі.</p>
+          <button id="publish" type="submit">Вакансияны жариялау</button>
+        </form>
+        <p id="publish-status" class="status" role="status" aria-live="polite"></p>
+        <section class="section">
+          <h2>Жарияланған вакансиялар</h2>
+          <div id="employer-vacancies" class="results vacancy-list" aria-live="polite"></div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const authView = document.querySelector('#auth-view');
+    const authForm = document.querySelector('#auth-form');
+    const authStatus = document.querySelector('#auth-status');
+    const authSwitch = document.querySelector('#auth-switch');
+    const authSubmit = document.querySelector('#auth-submit');
+    const roleView = document.querySelector('#role-view');
+    const roleStatus = document.querySelector('#role-status');
+    const appView = document.querySelector('#app-view');
+    let authMode = 'register';
+    let currentUser = null;
+
+    function showStatus(element, message, isError) {
+      element.textContent = message;
+      element.classList.toggle('error', Boolean(isError));
+    }
+
+    async function api(url, options) {
+      const response = await fetch(url, {
+        credentials: 'same-origin',
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options && options.headers) },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Сұраныс орындалмады.');
+      return data;
+    }
+
+    function addText(parent, tag, text, className) {
+      if (!text) return;
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      element.textContent = text;
+      parent.append(element);
+    }
+
+    function renderVacancies(container, vacancies, showScore) {
+      container.replaceChildren();
+      if (!vacancies.length) {
+        container.textContent = 'Әзірге вакансия жоқ. Кейінірек қайталап көріңіз.';
+        return;
+      }
+      for (const vacancy of vacancies) {
+        const card = document.createElement('article');
+        card.className = 'job';
+        addText(card, 'h2', vacancy.title || 'Вакансия');
+        addText(card, 'p', vacancy.company, 'meta');
+        addText(card, 'p', [vacancy.city, vacancy.district].filter(Boolean).join(' · '), 'meta');
+        addText(card, 'p', 'Дағдылар: ' + (vacancy.skills || 'Көрсетілмеген'));
+        addText(card, 'p', [vacancy.type, vacancy.experience, vacancy.salary]
+          .filter(Boolean).join(' · '), 'meta');
+        addText(card, 'p', vacancy.requirements, 'meta');
+        if (vacancy.phone) {
+          const contact = document.createElement('a');
+          contact.href = 'tel:' + vacancy.phone.replace(/[^\d+]/g, '');
+          contact.textContent = 'Байланыс: ' + vacancy.phone;
+          card.append(contact);
+        }
+        if (showScore) addText(card, 'p', 'Дағды сәйкестігі: ' + vacancy.matchScore + '%', 'score');
+        container.append(card);
+      }
+    }
+
+    async function loadVacancies() {
+      const data = await api('/vacancies');
+      const container = currentUser.role === 'employer'
+        ? document.querySelector('#employer-vacancies')
+        : document.querySelector('#vacancies');
+      renderVacancies(container, data, false);
+    }
+
+    function showApplication(user) {
+      currentUser = user;
+      authView.hidden = true;
+      roleView.hidden = true;
+      appView.hidden = false;
+      document.querySelector('#account-label').textContent =
+        'Сәлем, ' + user.username + ' · ' +
+        (user.role === 'employer' ? 'Жұмыс беруші' : 'Жұмыс іздеуші');
+      document.querySelector('#seeker-view').hidden = user.role !== 'seeker';
+      document.querySelector('#employer-view').hidden = user.role !== 'employer';
+      loadVacancies().catch(function(error) {
+        showStatus(
+          user.role === 'employer'
+            ? document.querySelector('#publish-status')
+            : document.querySelector('#match-status'),
+          error.message,
+          true
+        );
+      });
+    }
+
+    async function restoreSession() {
+      try {
+        const data = await api('/api/auth/me');
+        if (!data.user) return;
+        if (!data.user.role) {
+          currentUser = data.user;
+          authView.hidden = true;
+          roleView.hidden = false;
+          return;
+        }
+        showApplication(data.user);
+      } catch (error) {
+        showStatus(authStatus, error.message, true);
+      }
+    }
+
+    authSwitch.addEventListener('click', function() {
+      authMode = authMode === 'register' ? 'login' : 'register';
+      const isRegister = authMode === 'register';
+      document.querySelector('#auth-heading').textContent = isRegister ? 'Тіркелу' : 'Жүйеге кіру';
+      authSubmit.textContent = isRegister ? 'Тіркелу' : 'Кіру';
+      authForm.elements.password.autocomplete = isRegister ? 'new-password' : 'current-password';
+      authSwitch.textContent = isRegister ? 'Тіркелгім бар — кіру' : 'Жаңа тіркелгі ашу';
+      showStatus(authStatus, '', false);
+    });
+
+    authForm.addEventListener('submit', async function(event) {
+      event.preventDefault();
+      authSubmit.disabled = true;
+      showStatus(authStatus, 'Күте тұрыңыз...', false);
+      try {
+        const data = await api('/api/auth/' + authMode, {
+          method: 'POST',
+          body: JSON.stringify({
+            username: authForm.elements.username.value,
+            password: authForm.elements.password.value,
+          }),
+        });
+        currentUser = data.user;
+        authForm.reset();
+        authView.hidden = true;
+        if (!currentUser.role) {
+          roleView.hidden = false;
+        } else {
+          showApplication(currentUser);
+        }
+      } catch (error) {
+        showStatus(authStatus, error.message, true);
+      } finally {
+        authSubmit.disabled = false;
+      }
+    });
+
+    roleView.querySelectorAll('[data-role]').forEach(function(button) {
+      button.addEventListener('click', async function() {
+        button.disabled = true;
+        showStatus(roleStatus, 'Рөл сақталып жатыр...', false);
+        try {
+          const data = await api('/api/auth/role', {
+            method: 'POST',
+            body: JSON.stringify({ role: button.dataset.role }),
+          });
+          showApplication(data.user);
+        } catch (error) {
+          showStatus(roleStatus, error.message, true);
+        } finally {
+          button.disabled = false;
+        }
+      });
+    });
+
+    document.querySelector('#logout').addEventListener('click', async function() {
+      try {
+        await api('/api/auth/logout', { method: 'POST', body: '{}' });
+        currentUser = null;
+        appView.hidden = true;
+        roleView.hidden = true;
+        authView.hidden = false;
+        authForm.reset();
+        showStatus(authStatus, 'Жүйеден шықтыңыз.', false);
+      } catch (error) {
+        showStatus(authStatus, error.message, true);
+      }
+    });
+
+    document.querySelector('#match-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.querySelector('#match-submit');
+      const status = document.querySelector('#match-status');
+      button.disabled = true;
+      showStatus(status, 'Вакансиялар ізделіп жатыр...', false);
+      try {
+        const data = await api('/api/matches', {
+          method: 'POST',
+          body: JSON.stringify({ skills: form.elements.skills.value, city: form.elements.city.value }),
+        });
+        if (!data.matches.length) {
+          showStatus(status, 'Сәйкес вакансия табылмады. Жұмыс берушілер жариялаған вакансиялар төменде көрсетіледі.', false);
+        } else {
+          showStatus(status, 'Табылған вакансиялар: ' + data.matches.length, false);
+        }
+        renderVacancies(document.querySelector('#matches'), data.matches, true);
+      } catch (error) {
+        showStatus(status, error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    document.querySelector('#vacancy-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const button = document.querySelector('#publish');
+      const status = document.querySelector('#publish-status');
+      button.disabled = true;
+      showStatus(status, 'Вакансия жарияланып жатыр...', false);
+      try {
+        const vacancy = Object.fromEntries(new FormData(form).entries());
+        await api('/api/vacancies', { method: 'POST', body: JSON.stringify(vacancy) });
+        showStatus(status, 'Вакансия жарияланды! Жұмыс іздеушілер енді оны көре алады.', false);
+        form.reset();
+        await loadVacancies();
+      } catch (error) {
+        showStatus(status, error.message, true);
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    restoreSession();
+  </script>
+</body>
+</html>

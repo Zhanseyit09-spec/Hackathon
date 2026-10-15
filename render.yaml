@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: mangistau-job-platform
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
